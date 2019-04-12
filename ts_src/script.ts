@@ -1,4 +1,4 @@
-import { Stack } from './payments';
+import { Stack, StackElement } from './payments';
 import * as scriptNumber from './script_number';
 import * as scriptSignature from './script_signature';
 import * as types from './types';
@@ -22,7 +22,7 @@ function isOPInt(value: number): boolean {
   );
 }
 
-function isPushOnlyChunk(value: number | Buffer): boolean {
+function isPushOnlyChunk(value: StackElement): boolean {
   return types.Buffer(value) || isOPInt(value as number);
 }
 
@@ -45,7 +45,7 @@ function chunksIsArray(buf: Buffer | Stack): buf is Stack {
   return types.Array(buf);
 }
 
-function singleChunkIsBuffer(buf: number | Buffer): buf is Buffer {
+function singleChunkIsBuffer(buf: StackElement): buf is Buffer {
   return Buffer.isBuffer(buf);
 }
 
@@ -99,15 +99,13 @@ export function compile(chunks: Buffer | Stack): Buffer {
   return buffer;
 }
 
-export function decompile(
-  buffer: Buffer | Array<number | Buffer>,
-): Array<number | Buffer> | null {
+export function decompile(buffer: Buffer | Stack): Stack | null {
   // TODO: remove me
   if (chunksIsArray(buffer)) return buffer;
 
   typeforce(types.Buffer, buffer);
 
-  const chunks: Array<number | Buffer> = [];
+  const chunks: Stack = [];
   let i = 0;
 
   while (i < buffer.length) {
@@ -146,7 +144,7 @@ export function decompile(
   return chunks;
 }
 
-export function toASM(chunks: Buffer | Array<number | Buffer>): string {
+export function toASM(chunks: Buffer | Stack): string {
   if (chunksIsBuffer(chunks)) {
     chunks = decompile(chunks) as Stack;
   }
@@ -181,7 +179,7 @@ export function fromASM(asm: string): Buffer {
   );
 }
 
-export function toStack(chunks: Buffer | Array<number | Buffer>): Buffer[] {
+export function toStack(chunks: Buffer | Stack): Buffer[] {
   chunks = decompile(chunks) as Stack;
   typeforce(isPushOnly, chunks);
 
